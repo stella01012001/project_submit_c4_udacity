@@ -38,13 +38,11 @@ export class TodosAccess {
         return items as TodoItem[]
     }
 
-    async createTodo(todo: TodoItem): Promise<TodoItem> {
+    async createTodo(todo: TodoItem) {
         await this.dynamoDBClient.put({
             TableName: this.todosTable,
             Item: todo
         }).promise()
-
-        return todo
     }
 
     async updateTodo(userId: string, todoId: string, updatedTodo: TodoUpdate) {

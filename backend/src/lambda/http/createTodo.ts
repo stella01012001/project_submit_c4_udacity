@@ -8,16 +8,18 @@ import { createTodo } from '../../helpers/todos'
 
 export const handler = middy(
   async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const newTodo: CreateTodoRequest = JSON.parse(event.body)
-    // TODO: Implement creating a new TODO item
-    const authorization = event.headers.Authorization
-    const split = authorization.split(' ')
-    const jwtToken = split[1]
+    const theNewTODO: CreateTodoRequest = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
 
-    console.log('Caller event', event)
-    // const url = await getUploadUrl(imageId)
+    if (!theNewTODO.name) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          error: 'ERROR: The name is empty.'
+        })
+      };
+    }
 
-    const newItem = await createTodo(newTodo, jwtToken, event)
+    const todo = await createTodo(event, theNewTODO);
 
     return {
       statusCode: 201,
@@ -26,10 +28,11 @@ export const handler = middy(
         'Access-Control-Allow-Credentials': true
       },
       body: JSON.stringify({
-        newItem
+        item: todo
       })
-    }
-  })
+    };
+  }
+)
 
 handler.use(
   cors({

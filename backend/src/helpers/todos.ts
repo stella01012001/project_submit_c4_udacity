@@ -6,7 +6,7 @@ import { UpdateTodoRequest } from '../requests/UpdateTodoRequest'
 // import { createLogger } from '../utils/logger'
 import * as uuid from 'uuid'
 // import * as createError from 'http-errors'
-import { parseUserId } from '../auth/utils';
+//import { parseUserId } from '../auth/utils';
 import { APIGatewayProxyEvent } from 'aws-lambda'
 import { getUserId } from '../lambda/utils';
 
@@ -22,25 +22,25 @@ export async function getAllTodosForUser(userId: string): Promise<TodoItem[]> {
 }
 
 export async function createTodo(
-    createTodoRequest: CreateTodoRequest,
-    jwtToken: string, event: APIGatewayProxyEvent
+    event: APIGatewayProxyEvent, createTodoRequest: CreateTodoRequest
 ): Promise<TodoItem> {
 
-    const todoId = uuid.v4()
-    const userId = parseUserId(jwtToken)
-    const newTodo = JSON.parse(event.body)
+    const todoId = uuid.v4();
+    const userId = getUserId(event);
     const createdAt = new Date(Date.now()).toISOString();
 
-    return await todosAccess.createTodo({
-        todoId: todoId,
-        userId: userId,
-        name: createTodoRequest.name,
+    const todoItem = {
+        userId,
+        todoId,
         createdAt,
-        dueDate: createTodoRequest.dueDate,
+        done: false,
         attachmentUrl: `https://${bucketName}.s3.amazonaws.com/${todoId}`,
-        ...newTodo,
-        timestamp: new Date().toISOString()
-    })
+        ...createTodoRequest
+    };
+
+    await todosAccess.createTodo(todoItem);
+
+    return todoItem;
 }
 
 export async function updateTodo(event: APIGatewayProxyEvent) {
