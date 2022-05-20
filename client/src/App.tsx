@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { Link, Route, Router, Switch } from 'react-router-dom'
-import { Grid, Menu, Segment } from 'semantic-ui-react'
+import { Grid, Menu, Segment, ItemMeta, Item } from 'semantic-ui-react'
 
 import Auth from './auth/Auth'
 import { EditTodo } from './components/EditTodo'
@@ -23,6 +23,7 @@ export default class App extends Component<AppProps, AppState> {
 
     this.handleLogin = this.handleLogin.bind(this)
     this.handleLogout = this.handleLogout.bind(this)
+    this.handleGetInforUser = this.handleLogout.bind(this)
   }
 
   handleLogin() {
@@ -30,6 +31,10 @@ export default class App extends Component<AppProps, AppState> {
   }
 
   handleLogout() {
+    this.props.auth.logout()
+  }
+
+  handleGetInforUser() {
     this.props.auth.logout()
   }
 
@@ -59,15 +64,26 @@ export default class App extends Component<AppProps, AppState> {
         <Menu.Item name="home">
           <Link to="/">Home</Link>
         </Menu.Item>
-
+        <Menu.Menu position="right">{this.getInforUser()}</Menu.Menu>
         <Menu.Menu position="right">{this.logInLogOutButton()}</Menu.Menu>
       </Menu>
     )
   }
 
+  getInforUser() {
+    if (this.props.auth.isAuthenticated()) {
+      return (
+        <Menu.Item name="logout">
+          Hi {this.props.auth.getUsername()}
+        </Menu.Item>
+      )
+    }
+  }
+
   logInLogOutButton() {
     if (this.props.auth.isAuthenticated()) {
       return (
+        
         <Menu.Item name="logout" onClick={this.handleLogout}>
           Log Out
         </Menu.Item>

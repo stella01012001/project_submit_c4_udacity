@@ -1,5 +1,6 @@
 import auth0 from 'auth0-js';
 import { authConfig } from '../config';
+import { decode } from 'jsonwebtoken'
 
 export default class Auth {
   accessToken;
@@ -11,7 +12,7 @@ export default class Auth {
     clientID: authConfig.clientId,
     redirectUri: authConfig.callbackUrl,
     responseType: 'token id_token',
-    scope: 'openid'
+    scope: 'openid profile email'
   });
 
   constructor(history) {
@@ -46,6 +47,11 @@ export default class Auth {
 
   getAccessToken() {
     return this.accessToken;
+  }
+
+  getUsername() {
+    const decodedJwt = decode(this.idToken)
+    return decodedJwt.family_name
   }
 
   getIdToken() {

@@ -56,7 +56,7 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
         newTodoName: ''
       })
     } catch {
-      alert('Todo creation failed')
+      alert('Name of TODOs can not be empty, please put the name down!')
     }
   }
 
@@ -66,6 +66,7 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
       this.setState({
         todos: this.state.todos.filter(todo => todo.todoId !== todoId)
       })
+      alert('Todo deleted!')
     } catch {
       alert('Todo deletion failed')
     }
@@ -131,7 +132,7 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
             }}
             fluid
             actionPosition="left"
-            placeholder="To change the world..."
+            placeholder="Name your TODOs...."
             onChange={this.handleNameChange}
           />
         </Grid.Column>
