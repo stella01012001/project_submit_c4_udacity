@@ -1,5 +1,5 @@
-import { TodosAccess } from './todosAcess'
-import { TodosStorage } from './attachmentUtils'
+import { TodosAccess } from '../dataLayer/todosAcess'
+import { TodosStorage } from '../dataLayer/attachmentUtils'
 import { TodoItem } from '../models/TodoItem'
 import { CreateTodoRequest } from '../requests/CreateTodoRequest'
 import { UpdateTodoRequest } from '../requests/UpdateTodoRequest'

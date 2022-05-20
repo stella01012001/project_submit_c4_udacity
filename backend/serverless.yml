@@ -7,7 +7,6 @@ plugins:
   - serverless-webpack
   - serverless-iam-roles-per-function
   - serverless-plugin-tracing
-  - serverless-reqvalidator-plugin
 
 provider:
   name: aws
@@ -29,6 +28,9 @@ provider:
     TODOS_CREATED_AT_INDEX: CreatedAtIndex
     ATTACHMENT_S3_BUCKET: serverless-c4-todo-images-tyvn002-${self:provider.stage}
     SIGNED_URL_EXPIRATION: 300
+    USER_POOL_ID: { Ref: UserPool }
+    CLIENT_ID: { Ref: UserClient }
+    JWKs_URL: 'https://dev-utberqls.us.auth0.com/.well-known/jwks.json'
 
   logs:
     # Enable API Gateway logs
@@ -42,6 +44,13 @@ provider:
             - xray:PutTelemetryRecords
             - xray:PutTraceSegments
           Resource: '*'
+        - Effect: Allow
+          Action:
+            - cognito-idp:AdminInitiateAuth
+            - cognito-idp:AdminCreateUser
+            - cognito-idp:AdminSetUserPassword
+          Resource: "*"
+
 
 custom:
   dynamodb:
@@ -54,6 +63,39 @@ custom:
 functions:
   Auth:
     handler: src/lambda/auth/auth0Authorizer.handler
+
+  LoginUser:
+    handler: src/lambda/user/login.handler
+    events:
+      - http:
+          method: post
+          path: user/login
+          cors: true
+
+  SignupUser:
+    handler: src/lambda/user/signup.handler
+    events:
+      - http:
+          method: post
+          path: user/signup
+          cors: true
+
+  PrivateAPI:
+    handler: src/lambda/user/private.handler
+    events:
+      - http:
+          method: post
+          path: user/private
+          cors: true
+          authorizer:
+            name: PrivateAuthorizer
+            type: COGNITO_USER_POOLS
+            arn:
+              Fn::GetAtt:
+                - UserPool
+                - Arn
+            claims:
+              - email
 
   # TODO: Configure this function - //
   # Provide iamRoleStatements property for performing Actions on DynamoDB
@@ -236,3 +278,27 @@ resources:
               Action: 's3:*'
               Resource: 'arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*'
         Bucket: !Ref AttachmentsBucket
+
+    UserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: serverless-auth-pool
+        Schema:
+          - Name: email
+            Required: true
+            Mutable: true
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 6
+        AutoVerifiedAttributes: ["email"]
+
+    UserClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        ClientName: user-pool-ui
+        GenerateSecret: false
+        UserPoolId: { Ref: UserPool }
+        AccessTokenValidity: 5
+        IdTokenValidity: 5
+        ExplicitAuthFlows:
+          - "ADMIN_NO_SRP_AUTH"
